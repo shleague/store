@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SH League</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: black; }
+    .navbar { background: white; color: black; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-bottom: 2px solid #c13773; }
+    .navbar .logo-container { display: flex; align-items: center; gap: 10px; }
+    .navbar .logo-img { height: 40px; width: auto; }
+    .navbar .logo-text { color: #bd0919; font-size: 24px; font-weight: bold; text-decoration: none; }
+    .navbar .nav-links { display: flex; align-items: center; gap: 15px; }
+    .navbar a { color: #c13773; margin: 0 10px; text-decoration: none; transition: color 0.3s; }
+    .navbar a:hover { color: #bd0919; }
+    .navbar select { background: white; color: black; border: 1px solid #e289c1; padding: 5px; border-radius: 4px; }
+    .hero { 
+      text-align: center; 
+      padding: 100px 50px; 
+      background: url('https://res.cloudinary.com/desljx4rc/image/upload/v1753682637/hq720_es9d8d.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: white;
+      position: relative;
+    }
+    .hero h1 { color: white; margin-bottom: 10px; font-size: 3em; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+    .hero p { color: white; font-size: 1.2em; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+    .books-section { 
+      padding: 20px; 
+      background: #c13773; 
+    }
+    .books-section h2 { color: white; border-bottom: 2px solid white; padding-bottom: 10px; }
+    .book-card { border: 2px solid white; padding: 15px; margin: 10px; display: inline-block; vertical-align: top; width: 200px; border-radius: 8px; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.3s; }
+    .book-card:hover { transform: translateY(-5px); border-color: #e289c1; }
+    .book-card img { max-width: 100%; border-radius: 4px; }
+    .book-card h3 { color: #bd0919; margin: 10px 0 5px 0; }
+    .book-card p { color: black; margin: 5px 0; }
+    .book-card button { background: linear-gradient(135deg, #c13773, #bd0919); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; transition: background 0.3s; }
+    .book-card button:hover { background: linear-gradient(135deg, #bd0919, #c13773); }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+    .modal-content { background: white; margin: 15% auto; padding: 20px; width: 80%; max-width: 500px; border-radius: 8px; border: 2px solid #c13773; }
+    .modal-content h2 { color: #bd0919; border-bottom: 2px solid #e289c1; padding-bottom: 10px; }
+    .modal-content button { background: linear-gradient(135deg, #c13773, #bd0919); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+    .modal-content button:hover { background: linear-gradient(135deg, #bd0919, #c13773); }
+    .modal-content input, .modal-content select { border: 1px solid #e289c1; padding: 8px; margin: 5px 0; width: calc(100% - 16px); border-radius: 4px; }
+    .modal-content input:focus, .modal-content select:focus { outline: none; border-color: #c13773; }
+    .close { float: right; cursor: pointer; color: #bd0919; font-size: 24px; font-weight: bold; }
+    .close:hover { color: #c13773; }
+    .error { color: #bd0919; display: none; background: #ffe6e6; padding: 10px; border-radius: 4px; border: 1px solid #bd0919; }
+    .admin-section h3 { color: #bd0919; }
+    label { color: black; font-weight: bold; }
+    .books-section label { color: white; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo-container">
+      <img src="https://res.cloudinary.com/deijgnxtr/image/upload/v1753680556/logo_imrd5c.png" alt="SH League" class="logo-img">
+      <a href="#" class="logo-text">SH League</a>
+    </div>
+    <div class="nav-links">
+      <select id="category-filter">
+        <option value="all">All Categories</option>
+      </select>
+      <a href="#" onclick="clearFilters()">Clear Filters</a>
+      <a href="#" onclick="openModal('admin-modal')">Admin</a>
+      <a href="#" onclick="openModal('cart-modal')">Cart <span id="cart-count">0</span></a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <h1>Welcome to SH League</h1>
+    <p>Discover amazing books with premium shopping experience</p>
+  </section>
+
+  <section class="books-section">
+    <h2>Featured Books</h2>
+    <div>
+      <label>Filter by Category:</label>
+      <select id="category-filter-secondary">
+        <option value="all">All Categories</option>
+      </select>
+      <a href="#" onclick="clearFilters()">Clear Filters</a>
+    </div>
+    <div id="books-container"></div>
+  </section>
+
+  <!-- Admin Modal -->
+  <div id="admin-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('admin-modal')">&times;</span>
+      <h2>SH League Admin Panel</h2>
+      <a href="#" onclick="closeModal('admin-modal')">Back to Store</a>
+      <div>
+        <button onclick="showSection('manage-books')">Manage Books</button>
+        <button onclick="showSection('view-orders')">View Orders</button>
+        <button onclick="showSection('manage-discounts')">Manage Discounts</button>
+      </div>
+      <div id="manage-books" class="admin-section">
+        <h3>Book Management</h3>
+      </div>
+      <div id="view-orders" class="admin-section" style="display: none;">
+        <h3>Customer Orders</h3>
+      </div>
+      <div id="manage-discounts" class="admin-section" style="display: none;">
+        <h3>Discount Management</h3>
+        <label>Global Discount Percentage:</label>
+        <input type="number" id="discount-input">
+        <button onclick="updateDiscount()">Update Discount</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Modal -->
+  <div id="cart-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('cart-modal')">&times;</span>
+      <h2>Shopping Cart</h2>
+      <div id="cart-items"></div>
+      <p>Total: ₹<span id="cart-total">0.00</span></p>
+      <button onclick="openModal('checkout-modal')">Proceed to Checkout</button>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div id="checkout-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('checkout-modal')">&times;</span>
+      <h2>Customer Details</h2>
+      <div id="checkout-error" class="error"></div>
+      <input type="text" id="first-name" placeholder="First Name *">
+      <input type="text" id="last-name" placeholder="Last Name *">
+      <input type="email" id="email" placeholder="Email *">
+      <input type="tel" id="phone" placeholder="Phone Number *">
+      <input type="text" id="address" placeholder="Address *">
+      <input type="text" id="city" placeholder="City *">
+      <input type="text" id="postal-code" placeholder="Postal Code *">
+      <select id="payment-method">
+        <option value="">Select Payment Method</option>
+        <option value="card">Credit/Debit Card</option>
+        <option value="paypal">PayPal</option>
+        <option value="cod">Cash on Delivery</option>
+      </select>
+      <p>Total: ₹<span id="checkout-total">0.00</span></p>
+      <button onclick="completeOrder()">Complete Order</button>
+    </div>
+  </div>
+
+  <script>
+    const BOOKS_API = 'https://sheetdb.io/api/v1/sw7itt0spnqdg';
+    const ORDERS_API = 'https://sheetdb.io/api/v1/7ztm0bhlrl3e8';
+
+    async function fetchBooks() {
+      try {
+        const res = await fetch(BOOKS_API);
+        return await res.json();
+      } catch (err) {
+        console.error("Error loading books:", err);
+        return [];
+      }
+    }
+
+    function renderBooks(books) {
+      const container = document.getElementById('books-container');
+      container.innerHTML = '';
+      books.forEach(book => {
+        const card = document.createElement('div');
+        card.className = 'book-card';
+        card.innerHTML = `
+          <img src="${book.image}" alt="${book.title}">
+          <h3>${book.title}</h3>
+          <p>by ${book.author}</p>
+          <p>₹${parseFloat(book.price).toFixed(2)}</p>
+          <p>${book.description}</p>
+          <button onclick="addToCart('${book.id}')">Add to Cart</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function populateCategories(books) {
+      const categories = [...new Set(books.map(book => book.category || 'Uncategorized'))];
+      ['category-filter', 'category-filter-secondary'].forEach(id => {
+        const select = document.getElementById(id);
+        select.innerHTML = '<option value="all">All Categories</option>';
+        categories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          select.appendChild(opt);
+        });
+      });
+    }
+
+    function filterBooks(category, books) {
+      return category === 'all' ? books : books.filter(b => b.category === category);
+    }
+
+    document.getElementById('category-filter').addEventListener('change', e => {
+      const cat = e.target.value;
+      document.getElementById('category-filter-secondary').value = cat;
+      fetchBooks().then(books => renderBooks(filterBooks(cat, books)));
+    });
+
+    document.getElementById('category-filter-secondary').addEventListener('change', e => {
+      const cat = e.target.value;
+      document.getElementById('category-filter').value = cat;
+      fetchBooks().then(books => renderBooks(filterBooks(cat, books)));
+    });
+
+    function clearFilters() {
+      document.getElementById('category-filter').value = 'all';
+      document.getElementById('category-filter-secondary').value = 'all';
+      fetchBooks().then(renderBooks);
+    }
+
+    let cart = [];
+
+    function addToCart(id) {
+      fetchBooks().then(books => {
+        const book = books.find(b => b.id === id);
+        if (book) {
+          cart.push(book);
+          updateCart();
+        }
+      });
+    }
+
+    function updateCart() {
+      const cartItems = document.getElementById('cart-items');
+      const cartCount = document.getElementById('cart-count');
+      const cartTotal = document.getElementById('cart-total');
+      const checkoutTotal = document.getElementById('checkout-total');
+      cartItems.innerHTML = '';
+      let total = 0;
+      cart.forEach(book => {
+        total += parseFloat(book.price);
+        const div = document.createElement('div');
+        div.textContent = `${book.title} - ₹${parseFloat(book.price).toFixed(2)}`;
+        cartItems.appendChild(div);
+      });
+      cartCount.textContent = cart.length;
+      cartTotal.textContent = total.toFixed(2);
+      checkoutTotal.textContent = total.toFixed(2);
+    }
+
+    function openModal(id) {
+      document.getElementById(id).style.display = 'block';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+      document.getElementById('checkout-error').style.display = 'none';
+    }
+
+    function showSection(id) {
+      document.querySelectorAll('.admin-section').forEach(sec => {
+        sec.style.display = sec.id === id ? 'block' : 'none';
+      });
+    }
+
+    function updateDiscount() {
+      alert("Discount updated");
+    }
+
+    async function completeOrder() {
+      const errorDiv = document.getElementById('checkout-error');
+      errorDiv.style.display = 'none';
+
+      const fields = ['first-name', 'last-name', 'email', 'phone', 'address', 'city', 'postal-code', 'payment-method'];
+      const values = fields.map(id => document.getElementById(id).value.trim());
+
+      if (values.includes('') || cart.length === 0) {
+        errorDiv.textContent = cart.length === 0 ? 'Cart is empty' : 'Please fill in all fields';
+        errorDiv.style.display = 'block';
+        return;
+      }
+
+      const [first, last, email, phone, address, city, postal, payment] = values;
+      const total = cart.reduce((sum, b) => sum + parseFloat(b.price), 0).toFixed(2);
+      const items = cart.map(b => `${b.title} (₹${b.price})`).join(', ');
+
+      const order = {
+        order_id: Date.now().toString(),
+        first_name: first,
+        last_name: last,
+        email,
+        phone,
+        address,
+        city,
+        postal_code: postal,
+        payment_method: payment,
+        total,
+        items,
+        order_date: new Date().toISOString()
+      };
+
+      try {
+        const res = await fetch(ORDERS_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: [order] })
+        });
+        if (!res.ok) throw new Error('Failed to submit');
+        alert('Order submitted!');
+        cart = [];
+        updateCart();
+        closeModal('checkout-modal');
+      } catch (e) {
+        errorDiv.textContent = 'Error submitting order.';
+        errorDiv.style.display = 'block';
+      }
+    }
+
+    // Load books on start
+    fetchBooks().then(books => {
+      renderBooks(books);
+      populateCategories(books);
+    });
+  </script>
+</body>
+</html>
